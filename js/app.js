@@ -3,7 +3,8 @@
 const global = {
     location: window.location.pathname,
     api_key: '3bf00ace9a6286886a6fd8b94eb32f49',
-    url: false
+    url: false,
+    overview: 'This show has no description. We apologize for the inconvenience and hope that you get to enjoy it!'
 }
 
 function commas(x) {
@@ -36,6 +37,10 @@ async function fetchData(action) {
             global.url = `https://api.themoviedb.org/3/movie/${getParam('id')}?api_key=${global.api_key}`;
             break;
         case 'getPopularTV':
+            global.url = `https://api.themoviedb.org/3/tv/popular?api_key=${global.api_key}`;
+            break;
+        case 'getShow':
+            global.url = `https://api.themoviedb.org/3/tv/${getParam('id')}?api_key=${global.api_key}`;
             break;
     }
 
@@ -66,7 +71,26 @@ async function displayPopularMovies() {
             <p class="realese-date">${movie.release_date}</p>
         </div>
         `
-        document.querySelector('#popular-movies .container').append(div);        
+        document.querySelector('#popular .container').append(div);        
+    });
+}
+
+async function diplayPopularShows() {
+    const {results} = await fetchData('getPopularTV');
+    results.forEach(show => {
+        const div = document.createElement('div');
+        div.classList.add('card');
+        div.innerHTML = `
+        <a href="show-details.html?id=${show.id}">
+            ${show.poster_path ? `<img class="image" src="https://image.tmdb.org/t/p/w500${show.poster_path}" alt="empty-image">` : `<img class="image" src="./img/no-image.jpg" alt="empty-image">`}   
+        </a>
+        <div class="info">
+            <h3 class="name">${show.name}</h3>
+            <p class="realese-date">${show.first_air_date
+            }</p>
+        </div>
+        `;
+        document.querySelector('#popular .container').append(div);
     });
 }
 
@@ -94,7 +118,7 @@ async function displayMovieDetails() {
                 </div>
     `;
 
-    document.querySelector('#movie-details .container').append(div);
+    document.querySelector('#details .container').append(div);
 
     //bottom
 
@@ -113,7 +137,53 @@ async function displayMovieDetails() {
         <p>${movie.production_companies.map(company => company.name).join(', ')}</p>
     </div>
     `
-    document.querySelector('#movie-details .container').append(divBottom);
+    document.querySelector('#details .container').append(divBottom);
+}
+
+async function displayShowDetails() {
+
+    const show = await fetchData('getShow');
+
+    console.log(show);
+
+    //top
+
+    const div = document.createElement('div');
+    div.classList.add('top');
+    div.innerHTML = `${show.poster_path ? `
+                <img class="img" src="https://image.tmdb.org/t/p/w500${show.poster_path}" alt="">` : `<img class"img" src="./img/no-image.jpg" alt="">`}
+                <div class="description">
+                    <h3 class="title">${show.name}</h3>
+                    <div class="text">
+                        <p class="rating">Rating: ${Math.round(show.vote_average)}/10</p>
+                        <p class="release-date">Released: ${show.first_air_date}</p>
+                        <p class="plot">${show.overview === "" ? global.overview : show.overview}</p>
+                        <p id="genres"><strong>Genres</strong><ul class="list">
+                            ${show.genres.map(genre => `<li>${genre.name}</li>`).join('')}
+                        </ul></p>
+                        <a id="home-page" href="#" target="_blank">Visit show Homepage</a>
+                    </div>
+                </div>
+    `;
+
+    document.querySelector('#details .container').append(div);
+
+    //bottom
+
+    const divBottom = document.createElement('div');
+    divBottom.classList.add('bottom');
+    divBottom.innerHTML = `
+    <h3 class="heading">show INFO</h3>
+    <div class="info">
+        <ul class="numbers">
+            <li><span class="yellow">Episodes: </span>${show.number_of_episodes}</li>
+            <li><span class="yellow">Status: </span>${show.status}</li>
+        </ul>
+        <h4>Production Companies</h4>
+        <p>${show.production_companies.map(company => company.name).join(', ')}</p>
+    </div>
+    `
+    document.querySelector('#details .container').append(divBottom);
 }
 
 function router(location) {
@@ -124,11 +194,16 @@ function router(location) {
             console.log('in home page');
             break;
         case '/popular-tv-shows.html':
+            diplayPopularShows();
             isSelected();
             console.log('in popular tv page');
             break;
         case '/movie-details.html':
             displayMovieDetails();
+            console.log('in movie details page');
+            break;
+        case '/show-details.html':
+            displayShowDetails();
             console.log('in movie details page');
             break;
     }
