@@ -24,6 +24,10 @@ function isSelected() {
         document.querySelector('#popular-movies').classList.add('highlighted');
     } else if (location === '/popular-tv-shows.html') {
         document.querySelector('#popular-tv-shows').classList.add('highlighted');
+    } else if (getParam('type') === 'tv') {
+        document.querySelector('#popular-tv-shows').classList.add('highlighted');
+    } else if (getParam('type') === 'movie') {
+        document.querySelector('#popular-movies').classList.add('highlighted');
     }
 }
 
@@ -42,6 +46,12 @@ async function fetchData(action) {
         case 'getShow':
             global.url = `https://api.themoviedb.org/3/tv/${getParam('id')}?api_key=${global.api_key}`;
             break;
+        case 'search':
+            const type = getParam('type');
+            const queries = getParam('queries').split(' ').join(',');
+            console.log({type: type, queries: queries});
+            global.url = `https://api.themoviedb.org/3/search/${type}?query=${queries}&api_key=${global.api_key}`;
+            break;
     }
 
     if (global.url) {
@@ -54,6 +64,46 @@ async function fetchData(action) {
     }
 
 
+}
+
+async function search () {
+    const {results} = await fetchData('search');
+    getParam('type') === 'tv'? searchPopularShows(results) : searchPopularMovies(results);
+}
+
+async function searchPopularMovies(results) {
+    results.forEach(movie => {
+        const div = document.createElement('div');
+        div.classList.add('card');
+        div.innerHTML = `
+        <a href="movie-details.html?id=${movie.id}">
+            ${movie.poster_path ? `<img class="image" src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="empty-image">` : `<img class="image" src="./img/no-image.jpg" alt="empty-image">`}   
+        </a>
+        <div class="info">
+            <h3 class="name">${movie.title}</h3>
+            <p class="realese-date">${movie.release_date}</p>
+        </div>
+        `
+        document.querySelector('#popular .container').append(div);        
+    });
+}
+
+async function searchPopularShows(results) {
+    results.forEach(show => {
+        const div = document.createElement('div');
+        div.classList.add('card');
+        div.innerHTML = `
+        <a href="show-details.html?id=${show.id}">
+            ${show.poster_path ? `<img class="image" src="https://image.tmdb.org/t/p/w500${show.poster_path}" alt="empty-image">` : `<img class="image" src="./img/no-image.jpg" alt="empty-image">`}   
+        </a>
+        <div class="info">
+            <h3 class="name">${show.name}</h3>
+            <p class="realese-date">${show.first_air_date
+            }</p>
+        </div>
+        `;
+        document.querySelector('#popular .container').append(div);
+    });
 }
 
 async function displayPopularMovies() {
@@ -75,7 +125,7 @@ async function displayPopularMovies() {
     });
 }
 
-async function diplayPopularShows() {
+async function displayPopularShows() {
     const {results} = await fetchData('getPopularTV');
     results.forEach(show => {
         const div = document.createElement('div');
@@ -194,7 +244,7 @@ function router(location) {
             console.log('in home page');
             break;
         case '/popular-tv-shows.html':
-            diplayPopularShows();
+            displayPopularShows();
             isSelected();
             console.log('in popular tv page');
             break;
@@ -205,6 +255,11 @@ function router(location) {
         case '/show-details.html':
             displayShowDetails();
             console.log('in movie details page');
+            break;
+        case '/search-page.html':
+            search();
+            isSelected();
+            console.log('in search page');
             break;
     }
 }
