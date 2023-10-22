@@ -4,7 +4,8 @@ const global = {
     location: window.location.pathname,
     api_key: '3bf00ace9a6286886a6fd8b94eb32f49',
     url: false,
-    overview: 'This show has no description. We apologize for the inconvenience and hope that you get to enjoy it!'
+    overview: 'This show has no description. We apologize for the inconvenience and hope that you get to enjoy it!',
+    page: 1
 }
 
 function commas(x) {
@@ -50,8 +51,11 @@ async function fetchData(action) {
             const type = getParam('type');
             const queries = getParam('queries').split(' ').join(',');
             console.log({type: type, queries: queries});
-            global.url = `https://api.themoviedb.org/3/search/${type}?query=${queries}&api_key=${global.api_key}`;
+            global.url = `https://api.themoviedb.org/3/search/${type}?query=${queries}&api_key=${global.api_key}&page=${global.page}`;
             break;
+        case 'getNowPlaying':
+            global.url = `https://api.themoviedb.org/3/movie/now_playing?api_key=${global.api_key}`;
+            break;      
     }
 
     if (global.url) {
@@ -66,12 +70,82 @@ async function fetchData(action) {
 
 }
 
+async function displayNowPlaying () {
+    const {results: movies } = await fetchData('getNowPlaying');
+    movies.forEach(movie => {
+        const div = document.createElement('div');
+        div.classList.add('swiper-slide');
+        div.innerHTML = `
+            <div class="swiper-slide">
+                <div class="card">
+                    <a href="movie-details.html?id=${movie.id}">
+                        ${movie.poster_path ? `<img class="image" src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="empty-image">` : `<img class="image" src="./img/no-image.jpg" alt="empty-image">`}   
+                    </a>
+                    <div class="info">
+                        <h3 class="name">${movie.title}</h3>
+                        <p class="realese-date">${movie.release_date}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.querySelector('.swiper-wrapper').appendChild(div);
+    });
+
+    const swiper = new Swiper('.swiper', {
+        slidesPerView: 1,
+        speed: 400,
+        spaceBetween: 15,
+        autoplay: {
+            delay: 4000
+        },
+        breakpoints: {
+            // when window width is >= 320px
+            500: {
+              slidesPerView: 2,
+              spaceBetween: 5
+            },
+            // when window width is >= 480px
+            700: {
+              slidesPerView: 3,
+              spaceBetween: 15
+            },
+            // when window width is >= 640px
+            1200: {
+              slidesPerView: 4,
+              spaceBetween: 20
+            }
+          }
+
+    });
+
+    swiper();
+}
+
 async function search () {
-    const {results} = await fetchData('search');
+
+    const {results, total_pages} = await fetchData('search');
+
+    console.log({page: global.page, total_pages: total_pages});
+
+    if (global.page == 1) {
+        document.querySelector('#pagination .prev').disabled = true;
+    } else {
+        document.querySelector('#pagination .prev').disabled = false;
+    }
+    
+    if (global.page == total_pages) {
+        document.querySelector('#pagination .next').disabled = true;
+    } else {
+        document.querySelector('#pagination .next').disabled = false;
+    }
+
     getParam('type') === 'tv'? searchPopularShows(results) : searchPopularMovies(results);
+
+    document.querySelector('#page-count').innerHTML = `<p class="count">Page ${global.page} of ${total_pages}</p>`
 }
 
 async function searchPopularMovies(results) {
+    document.querySelector('#popular .container').innerHTML = '';
     results.forEach(movie => {
         const div = document.createElement('div');
         div.classList.add('card');
@@ -89,6 +163,7 @@ async function searchPopularMovies(results) {
 }
 
 async function searchPopularShows(results) {
+    document.querySelector('#popular .container').innerHTML = '';
     results.forEach(show => {
         const div = document.createElement('div');
         div.classList.add('card');
@@ -238,7 +313,9 @@ async function displayShowDetails() {
 
 function router(location) {
     switch(location) {
+        case '/':
         case '/index.html':
+            displayNowPlaying();
             displayPopularMovies();
             isSelected();
             console.log('in home page');
@@ -265,3 +342,18 @@ function router(location) {
 }
 
 router(global.location);
+
+if (global.location === '/search-page.html') {
+
+    document.querySelector('#pagination .prev').addEventListener('click', () => {
+        global.page--;
+        search();
+    });
+    
+    document.querySelector('#pagination .next').addEventListener('click', () => {
+        global.page++;
+        search();
+    });
+
+}
+

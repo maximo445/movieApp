@@ -4,6 +4,7 @@
 
 body {
     background: #131313;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 a {
@@ -80,6 +81,10 @@ a {
     padding: 30px;
 }
 
+.swiper {
+    max-width: 80%; 
+    margin: 70px 0;
+}
 #popular .card {
     background: rgb(43, 101, 226);
     padding: 10px;
@@ -90,13 +95,31 @@ a {
     transition: all 0.4s ease-in-out;
 }
 
-#popular .card:hover {
+
+
+.swiper-slide .card {
+    background: rgb(43, 101, 226);
+    padding: 10px;
+    flex-basis: 250px;
+    flex-grow: 1;
+    max-width: 200px;
+    color: #fff;
+    transition: all 0.4s ease-in-out;
+}
+
+#popular .card:hover,
+.swiper-slide .card:hover {
    transform: scale(1.04);
 }
 
 #popular .card .image {
     width: 100%;
 }
+
+.swiper-slide .card .image {
+    width: 100%;
+}
+
 
 /* Movie Details Page Top*/
 
@@ -120,6 +143,18 @@ a {
     text-decoration: none;
     border: solid 3px rgb(233, 233, 0);
     border-radius: 8px;
+}
+
+#pagination button {
+    align-self: flex-start;
+    color: rgb(233, 233, 0);
+    padding: 5px 15px;
+    margin: 20px 0;
+    margin-left: 30px;
+    text-decoration: none;
+    border: solid 3px rgb(233, 233, 0);
+    border-radius: 8px;
+    background: none;
 }
 
 #details .top {
@@ -198,6 +233,17 @@ margin-bottom: 0;
     list-style-type: none;
 }
 
+/* Search Page */
+
+#page-count {
+    color: #fff;
+    margin-left: 35px;
+}
+
+#page-count .count {
+    margin: 0;
+}
+
 /* Home Page Responsiviness */
 
 @media screen and (max-width: 545px) {
@@ -209,6 +255,7 @@ margin-bottom: 0;
     #popular .container {
         justify-content: center;
     }
+
 }
 
 /* Movie Details Responsiviness */
@@ -224,6 +271,48 @@ margin-bottom: 0;
         width: 90vw;
     }
 }
+
+/* swiper responsiviness */
+
+@media screen and (max-width: 500px) {
+    .swiper {
+        max-width: 100%;
+    }
+    .swiper-slide .card {
+        max-width: 25%;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    .swiper {
+        max-width: 80%;
+    }
+    .swiper-slide .card {
+        max-width: 33%;
+      }
+}
+
+
+@media screen and (max-width: 1200px) {
+    .swiper {
+        max-width: 70%;
+    }
+    .swiper-slide .card {
+        max-width: 33%;
+      }
+}
+
+@media screen and (max-width: 1800px) {
+    .swiper {
+        max-width:60%;
+    }
+    .swiper-slide .card {
+        max-width: 100%;
+      }
+}
+
+
+
 
 
 
